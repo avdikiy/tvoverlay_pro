@@ -51,6 +51,8 @@ from .const import (
     SERVICE_NOTIFY,
     SERVICE_NOTIFY_FIXED,
     SERVICE_RESTART,
+    SERVICE_START_VIDEO,
+    SERVICE_STOP_ALL,
 )
 
 _LOGGER = logging.getLogger(__name__)
