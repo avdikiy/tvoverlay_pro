@@ -249,7 +249,7 @@ notify_fixed:
           sort: false
     expiration:
       name: Expiration
-      description: When to expire. Examples: 1h, 30m, 1h30m, 3600 (seconds).
+      description: "When to expire. Examples: 1h, 30m, 1h30m, 3600 (seconds)."
       example: 1h
       selector:
         text:
