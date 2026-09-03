@@ -28,6 +28,8 @@ SERVICE_NOTIFY: Final = "notify"
 SERVICE_NOTIFY_FIXED: Final = "notify_fixed"
 SERVICE_CLEAR_FIXED: Final = "clear_fixed"
 SERVICE_RESTART: Final = "restart_service"
+SERVICE_STOP_ALL: Final = "stop_all"
+SERVICE_START_VIDEO: Final = "start_video"
 
 # Notification attributes
 ATTR_ID: Final = "id"

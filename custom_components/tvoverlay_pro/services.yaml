@@ -320,3 +320,103 @@ restart_service:
         text:
           multiline: false
           multiple: false
+
+stop_all:
+  name: Stop All
+  description: "Full OFF: restart service (stops video) + hide notifications (clears text/icon). Clock stays visible."
+  fields:
+    device_id:
+      name: Device (Dropdown)
+      required: false
+      selector:
+        device:
+          integration: tvoverlay_pro
+          multiple: false
+    target:
+      name: Device Identifier (Stable)
+      required: false
+      example: living_room_tv
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    host:
+      name: Host
+      required: false
+      example: 192.168.1.100:5001
+      selector:
+        text:
+          multiline: false
+          multiple: false
+
+start_video:
+  name: Start Video
+  description: "Full ON: enable notifications + send video notification."
+  fields:
+    device_id:
+      name: Device (Dropdown)
+      required: false
+      selector:
+        device:
+          integration: tvoverlay_pro
+          multiple: false
+    target:
+      name: Device Identifier (Stable)
+      required: false
+      example: living_room_tv
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    host:
+      name: Host
+      required: false
+      example: 192.168.1.100:5001
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    id:
+      name: Notification ID
+      description: Unique ID for this notification.
+      example: cam_pip
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    title:
+      name: Title
+      description: Notification title (required by TvOverlay for video to start).
+      default: "Camera"
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    media_url:
+      name: Video URL
+      description: RTSP URL or .m3u8/.mpd URL.
+      required: true
+      example: rtsp://user:pass@192.168.1.100:554
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    small_icon:
+      name: Small Icon
+      description: MDI icon.
+      example: mdi:camera
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    duration:
+      name: Duration
+      description: How long to show (seconds). Max 86400 (24h).
+      default: 86400
+      selector:
+        number:
+          min: 1
+          max: 86400
+          step: 1
+          unit_of_measurement: seconds
+          mode: slider

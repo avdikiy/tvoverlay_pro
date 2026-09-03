@@ -286,7 +286,53 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         except TvOverlayConnectionError as err:
             _LOGGER.error("Failed to restart service: %s", err)
 
+    async def handle_stop_all(call: ServiceCall) -> None:
+        """Stop all video and notifications — full OFF sequence.
+
+        1. restart_service (stops video)
+        2. wait 5s
+        3. set displayNotifications: false, displayFixedNotifications: false (hides text/icon)
+        """
+        client = _get_client(call)
+        if client is None:
+            return
+        _LOGGER.info("Stop all at %s:%s", client.host, client.port)
+        try:
+            await client.restart_service()
+            await asyncio.sleep(5)
+            await client.set_notifications({
+                "displayNotifications": False,
+                "displayFixedNotifications": False,
+            })
+        except TvOverlayConnectionError as err:
+            _LOGGER.error("Failed to stop all: %s", err)
+
+    async def handle_start_video(call: ServiceCall) -> None:
+        """Start video — full ON sequence.
+
+        1. set displayNotifications: true, displayFixedNotifications: true
+        2. wait 2s
+        3. send notification with video
+        """
+        client = _get_client(call)
+        if client is None:
+            return
+        _LOGGER.info("Start video at %s:%s", client.host, client.port)
+        try:
+            await client.set_notifications({
+                "displayNotifications": True,
+                "displayFixedNotifications": True,
+            })
+            await asyncio.sleep(2)
+            payload = _build_notification_data(call.data)
+            _LOGGER.debug("Start video payload: %s", payload)
+            await client.send_notification(payload)
+        except TvOverlayConnectionError as err:
+            _LOGGER.error("Failed to start video: %s", err)
+
     hass.services.async_register(DOMAIN, SERVICE_NOTIFY, handle_notify)
     hass.services.async_register(DOMAIN, SERVICE_NOTIFY_FIXED, handle_notify_fixed)
     hass.services.async_register(DOMAIN, SERVICE_CLEAR_FIXED, handle_clear_fixed)
     hass.services.async_register(DOMAIN, SERVICE_RESTART, handle_restart)
+    hass.services.async_register(DOMAIN, SERVICE_STOP_ALL, handle_stop_all)
+    hass.services.async_register(DOMAIN, SERVICE_START_VIDEO, handle_start_video)
