@@ -1,0 +1,84 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "TvOverlay Pro",
+        "description": "Set up your TvOverlay device.",
+        "data": {
+          "host": "Host / IP Address",
+          "port": "Port",
+          "name": "Device Name",
+          "device_identifier": "Device Identifier (optional, auto-generated from name)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to TvOverlay. Check host and port."
+    },
+    "abort": {
+      "already_configured": "This TvOverlay device is already configured."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connectivity": {
+        "name": "Connectivity"
+      }
+    },
+    "button": {
+      "restart_service": {
+        "name": "Restart Service"
+      }
+    },
+    "number": {
+      "clock_visibility": {
+        "name": "Clock Visibility"
+      },
+      "overlay_visibility": {
+        "name": "Overlay Visibility"
+      },
+      "fixed_notifications_visibility": {
+        "name": "Fixed Notifications Visibility"
+      },
+      "notification_duration": {
+        "name": "Notification Duration"
+      }
+    },
+    "select": {
+      "hot_corner": {
+        "name": "Hot Corner"
+      },
+      "default_shape": {
+        "name": "Default Shape"
+      }
+    },
+    "sensor": {
+      "hostname": {
+        "name": "Hostname"
+      },
+      "ip_address": {
+        "name": "IP Address"
+      },
+      "active_fixed_notifications": {
+        "name": "Active Fixed Notifications"
+      }
+    },
+    "switch": {
+      "display_notifications": {
+        "name": "Display Notifications"
+      },
+      "display_clock": {
+        "name": "Display Clock"
+      },
+      "display_fixed_notifications": {
+        "name": "Display Fixed Notifications"
+      },
+      "pixel_shift": {
+        "name": "Pixel Shift"
+      },
+      "debug_mode": {
+        "name": "Debug Mode"
+      }
+    }
+  }
+}

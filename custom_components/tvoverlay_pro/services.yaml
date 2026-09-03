@@ -1,0 +1,322 @@
+notify:
+  name: Send Notification
+  description: Send a notification to a TvOverlay Pro device.
+  fields:
+    device_id:
+      name: Device (Dropdown)
+      description: Select a device from dropdown.
+      required: false
+      selector:
+        device:
+          integration: tvoverlay_pro
+          multiple: false
+    target:
+      name: Device Identifier (Stable)
+      description: Enter your stable Device Identifier (e.g., living_room_tv).
+      required: false
+      example: living_room_tv
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    host:
+      name: Host
+      description: Manual host:port (e.g., 192.168.1.100:5001).
+      required: false
+      example: 192.168.1.100:5001
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    id:
+      name: Notification ID
+      description: Optional unique ID for this notification.
+      example: doorbell_1
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    title:
+      name: Title
+      description: The notification title.
+      example: Doorbell
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    message:
+      name: Message
+      description: The notification message.
+      example: Someone is at the door
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    source:
+      name: Source
+      description: The notification source.
+      example: Home Assistant
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    media_type:
+      name: Media Type
+      description: Type of media to display.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "None"
+              value: "none"
+            - label: "Image"
+              value: "image"
+            - label: "Video"
+              value: "video"
+          custom_value: false
+          multiple: false
+          sort: false
+    media_url:
+      name: Media URL
+      description: Video (rtsp://, .m3u8, .mpd) or Image (http://...). Local paths not supported.
+      example: rtsp://user:pass@192.168.1.100:554
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    corner:
+      name: Corner
+      description: Screen corner for the notification.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "Top Left"
+              value: "top_start"
+            - label: "Top Right"
+              value: "top_end"
+            - label: "Bottom Left"
+              value: "bottom_start"
+            - label: "Bottom Right"
+              value: "bottom_end"
+          custom_value: false
+          multiple: false
+          sort: false
+    duration:
+      name: Duration
+      description: How long to show the notification (in seconds). Max 86400 (24h).
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 86400
+          step: 1
+          unit_of_measurement: seconds
+          mode: slider
+    small_icon:
+      name: Small Icon
+      description: MDI icon or image URL.
+      example: mdi:doorbell
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    small_icon_color:
+      name: Small Icon Color
+      description: Hex (#FF5500) or color name.
+      example: red
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    large_icon:
+      name: Large Icon
+      description: MDI icon or image URL.
+      example: mdi:account
+      selector:
+        text:
+          multiline: false
+          multiple: false
+
+notify_fixed:
+  name: Send Fixed Notification
+  description: Send a persistent fixed notification to a TvOverlay Pro device.
+  fields:
+    device_id:
+      name: Device (Dropdown)
+      required: false
+      selector:
+        device:
+          integration: tvoverlay_pro
+          multiple: false
+    target:
+      name: Device Identifier (Stable)
+      required: false
+      example: living_room_tv
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    host:
+      name: Host
+      required: false
+      example: 192.168.1.100:5001
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    id:
+      name: Notification ID
+      description: Unique ID (required for updates/clearing).
+      required: true
+      example: weather
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    visible:
+      name: Visible
+      description: Whether the notification is visible.
+      default: true
+      selector:
+        boolean: {}
+    icon:
+      name: Icon
+      example: mdi:weather-sunny
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    message:
+      name: Message
+      example: "72°F"
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    message_color:
+      name: Message Color
+      example: white
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    icon_color:
+      name: Icon Color
+      example: white
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    border_color:
+      name: Border Color
+      example: white
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    background_color:
+      name: Background Color
+      example: black
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    background_opacity:
+      name: Background Opacity
+      default: 40
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: slider
+    shape:
+      name: Shape
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "Circle"
+              value: "circle"
+            - label: "Rounded"
+              value: "rounded"
+            - label: "Rectangular"
+              value: "rectangular"
+          custom_value: false
+          multiple: false
+          sort: false
+    expiration:
+      name: Expiration
+      description: When to expire. Examples: 1h, 30m, 1h30m, 3600 (seconds).
+      example: 1h
+      selector:
+        text:
+          multiline: false
+          multiple: false
+
+clear_fixed:
+  name: Clear Fixed Notification
+  description: Clear a fixed notification by setting it invisible.
+  fields:
+    device_id:
+      name: Device (Dropdown)
+      required: false
+      selector:
+        device:
+          integration: tvoverlay_pro
+          multiple: false
+    target:
+      name: Device Identifier (Stable)
+      required: false
+      example: living_room_tv
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    host:
+      name: Host
+      required: false
+      example: 192.168.1.100:5001
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    id:
+      name: Notification ID
+      description: The ID of the fixed notification to clear.
+      required: true
+      example: weather
+      selector:
+        text:
+          multiline: false
+          multiple: false
+
+restart_service:
+  name: Restart Service
+  description: Restart the TvOverlay overlay service. Stops all active notifications and video playback.
+  fields:
+    device_id:
+      name: Device (Dropdown)
+      required: false
+      selector:
+        device:
+          integration: tvoverlay_pro
+          multiple: false
+    target:
+      name: Device Identifier (Stable)
+      required: false
+      example: living_room_tv
+      selector:
+        text:
+          multiline: false
+          multiple: false
+    host:
+      name: Host
+      required: false
+      example: 192.168.1.100:5001
+      selector:
+        text:
+          multiline: false
+          multiple: false

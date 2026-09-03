@@ -1,0 +1,12 @@
+{
+  "domain": "tvoverlay_pro",
+  "name": "TvOverlay Pro",
+  "codeowners": ["@adikiy"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/adikiy/tvoverlay_pro",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/adikiy/tvoverlay_pro/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}
