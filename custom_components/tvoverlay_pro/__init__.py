@@ -292,8 +292,8 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         """Stop all video and notifications — full OFF sequence.
 
         1. restart_service (stops video)
-        2. wait 5s
-        3. set displayNotifications: false, displayFixedNotifications: false (hides text/icon)
+        2. set displayNotifications: false, displayFixedNotifications: false (hides text/icon)
+        No sleep — delays handled by automation if needed.
         """
         client = _get_client(call)
         if client is None:
@@ -301,7 +301,6 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         _LOGGER.info("Stop all at %s:%s", client.host, client.port)
         try:
             await client.restart_service()
-            await asyncio.sleep(5)
             await client.set_notifications({
                 "displayNotifications": False,
                 "displayFixedNotifications": False,
@@ -325,7 +324,7 @@ async def _async_register_services(hass: HomeAssistant) -> None:
                 "displayNotifications": True,
                 "displayFixedNotifications": True,
             })
-            await asyncio.sleep(2)
+            await asyncio.sleep(1)
             payload = _build_notification_data(call.data)
             _LOGGER.debug("Start video payload: %s", payload)
             await client.send_notification(payload)
