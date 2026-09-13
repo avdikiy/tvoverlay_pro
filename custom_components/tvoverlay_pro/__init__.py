@@ -3,8 +3,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
+import time
 from typing import Any
 
+import aiohttp
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, callback
@@ -56,6 +59,86 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# --- go2rtc stream warmer -------------------------------------------------
+# The TV player (media3 RtspClient) hangs forever ("loading") when it
+# attaches to a COLD go2rtc producer; attaching to an already-producing
+# stream works reliably. A held-open consumer keeps the producer alive
+# until the TV's own consumer attaches (~seconds after notify).
+GO2RTC_RTSP_PORT = 8554
+GO2RTC_API_PORT = 1984
+GO2RTC_WARMER_HOLD = 12  # seconds to keep the warmer attached after the stream is producing
+GO2RTC_WARMER_SOCK_READ = 30  # per-read timeout while waiting for stream data
+
+_GO2RTC_RTSP_RE = re.compile(r"^rtsp://([^/:@]+):(\d+)/([^/?#]+)")
+
+
+def _go2rtc_warmer_url(video_url: str) -> str | None:
+    """Return the go2rtc warmer URL for a go2rtc RTSP video URL, else None.
+
+    Only matches plain rtsp://host:8554/<stream> URLs (go2rtc RTSP source).
+    Direct camera URLs (credentials, other ports) are not warmed.
+    """
+    match = _GO2RTC_RTSP_RE.match(video_url or "")
+    if not match:
+        return None
+    host, port, stream_name = match.groups()
+    if int(port) != GO2RTC_RTSP_PORT:
+        return None
+    return f"http://{host}:{GO2RTC_API_PORT}/api/stream.mp4?src={stream_name}"
+
+
+async def _go2rtc_warmer_task(
+    hass: HomeAssistant, warmer_url: str, ready: asyncio.Event
+) -> None:
+    """Hold a consumer open on a go2rtc stream until the TV has attached.
+
+    1. GET /api/stream.mp4?src=<name> — attaches a consumer; the producer
+       (re)starts.
+    2. Wait for the first bytes — the producer is now producing; set ready.
+    3. Keep draining the response for GO2RTC_WARMER_HOLD seconds so the
+       consumer is not flagged as stalled; the TV attaches within seconds
+       after notify and its own consumer keeps the producer alive.
+    4. Close — the warmer detaches, the TV consumer alone sustains the stream.
+    """
+    session = async_get_clientsession(hass)
+    response: aiohttp.ClientResponse | None = None
+    try:
+        try:
+            response = await session.get(
+                warmer_url,
+                timeout=aiohttp.ClientTimeout(
+                    total=None, connect=5, sock_read=GO2RTC_WARMER_SOCK_READ
+                ),
+            )
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            _LOGGER.warning("go2rtc warmer: connect failed (%s): %s", warmer_url, err)
+            return
+        if response.status != 200:
+            _LOGGER.warning("go2rtc warmer: HTTP %s from %s", response.status, warmer_url)
+            return
+        try:
+            first = await response.content.readany()
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            _LOGGER.warning("go2rtc warmer: no stream data (%s): %s", warmer_url, err)
+            return
+        if not first:
+            _LOGGER.warning("go2rtc warmer: closed without data: %s", warmer_url)
+            return
+        _LOGGER.info("go2rtc warmer: stream is producing (%s)", warmer_url)
+        ready.set()
+        deadline = time.monotonic() + GO2RTC_WARMER_HOLD
+        try:
+            while time.monotonic() < deadline:
+                chunk = await response.content.read(65536)
+                if not chunk:
+                    break
+        except (aiohttp.ClientError, asyncio.TimeoutError):
+            _LOGGER.debug("go2rtc warmer: stream ended during hold")
+    finally:
+        if response is not None:
+            response.close()
+        _LOGGER.debug("go2rtc warmer: detached")
 
 
 def _build_notification_data(data: dict, defaults: dict | None = None) -> dict:
@@ -319,11 +402,23 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         3. set displayNotifications: true, displayFixedNotifications: true
         4. wait 1s
         5. send notification with video (becomes current → player starts)
+
+        go2rtc streams are warmed in parallel: the TV player hangs forever
+        on a cold go2rtc producer, so a held-open consumer is attached
+        before notify and detached after the TV's own consumer attaches.
         """
         client = _get_client(call)
         if client is None:
             return
         _LOGGER.info("Start video at %s:%s", client.host, client.port)
+        payload = _build_notification_data(call.data)
+        warmer_task: asyncio.Task | None = None
+        ready: asyncio.Event = asyncio.Event()
+        warmer_url = _go2rtc_warmer_url(payload.get("video", ""))
+        if warmer_url is not None:
+            warmer_task = hass.async_create_task(
+                _go2rtc_warmer_task(hass, warmer_url, ready)
+            )
         try:
             await client.restart_service()
             await asyncio.sleep(3)
@@ -339,7 +434,15 @@ async def _async_register_services(hass: HomeAssistant) -> None:
                 "displayFixedNotifications": True,
             })
             await asyncio.sleep(1)
-            payload = _build_notification_data(call.data)
+            if warmer_task is not None:
+                try:
+                    await asyncio.wait_for(
+                        ready.wait(), timeout=GO2RTC_WARMER_SOCK_READ + 5
+                    )
+                except asyncio.TimeoutError:
+                    _LOGGER.warning(
+                        "go2rtc warmer not ready in time, notifying TV anyway"
+                    )
             _LOGGER.debug("Start video payload: %s", payload)
             await client.send_notification(payload)
         except TvOverlayConnectionError as err:
