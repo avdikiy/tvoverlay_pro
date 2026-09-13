@@ -311,15 +311,29 @@ async def _async_register_services(hass: HomeAssistant) -> None:
     async def handle_start_video(call: ServiceCall) -> None:
         """Start video — full ON sequence.
 
-        1. set displayNotifications: true, displayFixedNotifications: true
-        2. wait 2s
-        3. send notification with video
+        1. restart_service — clears the current notification and player
+           state. REQUIRED: TvOverlay does not re-initialize the video
+           player on same-id notification updates, so without this,
+           switching cameras while PiP is active shows the old stream.
+        2. wait for API to come back after restart
+        3. set displayNotifications: true, displayFixedNotifications: true
+        4. wait 1s
+        5. send notification with video (becomes current → player starts)
         """
         client = _get_client(call)
         if client is None:
             return
         _LOGGER.info("Start video at %s:%s", client.host, client.port)
         try:
+            await client.restart_service()
+            await asyncio.sleep(3)
+            if not await client.wait_for_api(timeout=15):
+                _LOGGER.warning(
+                    "TvOverlay API at %s:%s not responsive after restart, "
+                    "trying to continue",
+                    client.host,
+                    client.port,
+                )
             await client.set_notifications({
                 "displayNotifications": True,
                 "displayFixedNotifications": True,

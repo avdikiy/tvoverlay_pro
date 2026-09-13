@@ -1,7 +1,9 @@
 """HTTP API client for TvOverlay."""
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from typing import Any
 
 import aiohttp
@@ -133,6 +135,23 @@ class TvOverlayApiClient:
         """POST /set/restart_service — restart the overlay service."""
         success, _ = await self._make_request("POST", ENDPOINT_RESTART_SERVICE, {})
         return success
+
+    async def wait_for_api(self, timeout: float = 15.0, interval: float = 1.0) -> bool:
+        """Poll GET /get until the API responds.
+
+        Used after restart_service: the overlay service restarts and may
+        briefly be unavailable. Returns True once responsive, False on timeout.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            try:
+                success, _ = await self._make_request("GET", ENDPOINT_GET)
+                if success:
+                    return True
+            except TvOverlayConnectionError:
+                pass
+            await asyncio.sleep(interval)
+        return False
 
     async def set_notifications(self, data: dict) -> bool:
         """POST /set/notifications — set notification settings."""

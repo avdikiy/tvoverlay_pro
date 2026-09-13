@@ -351,7 +351,10 @@ stop_all:
 
 start_video:
   name: Start Video
-  description: "Full ON: enable notifications + send video notification."
+  description: >-
+    Full ON: restart overlay service (clears current notification so the
+    video player re-initializes), enable notifications, send video
+    notification. Use for PiP start and camera switching.
   fields:
     device_id:
       name: Device (Dropdown)
